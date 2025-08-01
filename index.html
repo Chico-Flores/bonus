@@ -328,6 +328,12 @@
             100% { transform: rotate(360deg); }
         }
 
+        .file-name {
+            margin-top: 15px;
+            color: #059669;
+            font-weight: bold;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -426,6 +432,7 @@
                     Choose File
                 </button>
                 <p style="margin-top: 10px; color: #64748b; font-size: 0.9rem;">Supported formats: .xlsx, .xls, .csv</p>
+                <div id="fileName" class="file-name" style="display: none;"></div>
             </div>
 
             <div class="loading" id="loading">
@@ -529,6 +536,8 @@
         function handleFile(event) {
             const file = event.target.files[0];
             if (file) {
+                document.getElementById('fileName').textContent = `Selected: ${file.name}`;
+                document.getElementById('fileName').style.display = 'block';
                 processFile(file);
             }
         }
@@ -547,10 +556,11 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
                     
-                    calculateBonuses(jsonData);
+                    // Store workbook globally so calculateBonuses can access it
+                    window.currentWorkbook = workbook;
+                    
+                    calculateBonuses(null); // Pass null since we're using the workbook directly
                 } catch (error) {
                     alert('Error reading file. Please make sure it\'s a valid Excel file.');
                     console.error(error);
@@ -564,35 +574,70 @@
             calculatedBonuses = [];
             const structure = bonusStructures[selectedTeam];
 
-            data.forEach(row => {
-                // Extract payment amount (looking for "Pmt Amt" or similar columns)
-                const pmtAmt = parseFloat(row['Pmt Amt'] || row['Payment Amount'] || row['Amount'] || 0);
-                const accountNum = row['Account #'] || row['Account'] || row['Account Number'] || '';
-                const agent = extractAgent(row);
-                const date = row['Pmt Date'] || row['Date'] || row['Payment Date'] || '';
-
-                if (pmtAmt >= 500 && accountNum && agent) {
-                    const bonus = calculateBonus(pmtAmt, structure);
-                    if (bonus > 0) {
-                        calculatedBonuses.push({
-                            agent: agent,
-                            accountNum: accountNum,
-                            paymentAmount: pmtAmt,
-                            bonusAmount: bonus,
-                            date: date
-                        });
+            // Process all sheets in the workbook
+            const workbook = window.currentWorkbook;
+            
+            workbook.SheetNames.forEach(sheetName => {
+                const sheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                
+                // Find the header row (contains "Pmt Amt")
+                let headerRowIndex = -1;
+                let headerRow = [];
+                
+                for (let i = 0; i < jsonData.length; i++) {
+                    if (jsonData[i] && jsonData[i].some(cell => cell && cell.toString().includes('Pmt Amt'))) {
+                        headerRowIndex = i;
+                        headerRow = jsonData[i];
+                        break;
+                    }
+                }
+                
+                if (headerRowIndex === -1) return; // No header found in this sheet
+                
+                // Find column indices
+                const pmtAmtIndex = headerRow.findIndex(cell => cell && cell.toString().includes('Pmt Amt'));
+                const accountIndex = headerRow.findIndex(cell => cell && cell.toString().includes('Account #'));
+                const dateIndex = headerRow.findIndex(cell => cell && cell.toString().includes('Pmt Date'));
+                
+                // Extract agent from sheet name or row 1
+                let agent = '';
+                if (jsonData[1] && jsonData[1][0]) {
+                    agent = jsonData[1][0].toString().trim();
+                }
+                
+                // Process data rows (after header)
+                for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row || row.length === 0) continue;
+                    
+                    const pmtAmtStr = row[pmtAmtIndex];
+                    const accountNum = row[accountIndex];
+                    const date = row[dateIndex];
+                    
+                    // Skip total/summary rows
+                    if (!pmtAmtStr || !accountNum || accountNum.toString().trim() === '') continue;
+                    
+                    // Parse payment amount (remove $ and commas)
+                    const pmtAmt = parseFloat(pmtAmtStr.toString().replace(/[$,]/g, ''));
+                    
+                    if (pmtAmt >= 500 && accountNum) {
+                        const bonus = calculateBonus(pmtAmt, structure);
+                        if (bonus > 0) {
+                            calculatedBonuses.push({
+                                agent: agent,
+                                accountNum: accountNum.toString(),
+                                paymentAmount: pmtAmt,
+                                bonusAmount: bonus,
+                                date: date ? date.toString() : ''
+                            });
+                        }
                     }
                 }
             });
 
             displayResults();
             document.getElementById('loading').style.display = 'none';
-        }
-
-        function extractAgent(row) {
-            // Try to find agent info from various possible column names
-            return row['Agent'] || row['Collector'] || row['Coll. 2'] || row['Coll. 3'] || 
-                   row['Initials'] || row['Name'] || '';
         }
 
         function calculateBonus(amount, structure) {
