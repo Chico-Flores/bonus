@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE POWERHOUZE GROUP - Bonus Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #fbbf24 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: "⚡";
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: #fbbf24;
+        }
+
+        .header::after {
+            content: "⚡";
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: #fbbf24;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .team-selector {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .team-selector h2 {
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .team-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .team-btn {
+            background: white;
+            border: 3px solid #1e40af;
+            color: #1e40af;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .team-btn:hover {
+            background: #1e40af;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .team-btn.active {
+            background: #1e40af;
+            color: white;
+            box-shadow: 0 10px 20px rgba(30, 64, 175, 0.3);
+        }
+
+        .team-btn::before {
+            content: "⚡";
+            margin-right: 8px;
+            color: #fbbf24;
+        }
+
+        .upload-section {
+            border: 3px dashed #3b82f6;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            background: #f1f5f9;
+            border-color: #1e40af;
+        }
+
+        .upload-section.dragover {
+            background: #dbeafe;
+            border-color: #1e40af;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .bonus-structures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .structure-card {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .structure-card h3 {
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .structure-card.mexico {
+            border-color: #fbbf24;
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+        }
+
+        .structure-card.opac {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        }
+
+        .bracket {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .mexico .bracket {
+            border-left-color: #fbbf24;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results-header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1e40af;
+        }
+
+        .stat-label {
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .results-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #1e40af;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .bonus-amount {
+            font-weight: bold;
+            color: #059669;
+        }
+
+        .download-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1e40af;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .bonus-structures {
+                grid-template-columns: 1fr;
+            }
+            
+            .team-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>THE POWERHOUZE GROUP</h1>
+            <p>Agent Bonus Calculator</p>
+        </div>
+
+        <div class="main-content">
+            <div class="team-selector">
+                <h2>Select Team for Bonus Calculation</h2>
+                <div class="team-buttons">
+                    <button class="team-btn" data-team="mexico">Mexico Team</button>
+                    <button class="team-btn" data-team="opac">OPAC Team (Egypt/Philippines)</button>
+                </div>
+            </div>
+
+            <div class="bonus-structures">
+                <div class="structure-card mexico">
+                    <h3>⚡ Mexico Team Bonuses</h3>
+                    <div class="bracket">
+                        <span>$500 - $999</span>
+                        <span><strong>$25</strong></span>
+                    </div>
+                    <div class="bracket">
+                        <span>$1,000 - $1,999</span>
+                        <span><strong>$50</strong></span>
+                    </div>
+                    <div class="bracket">
+                        <span>$2,000 - $3,999</span>
+                        <span><strong>$100</strong></span>
+                    </div>
+                    <div class="bracket">
+                        <span>$4,000+</span>
+                        <span><strong>$200</strong></span>
+                    </div>
+                </div>
+
+                <div class="structure-card opac">
+                    <h3>⚡ OPAC Team Bonuses</h3>
+                    <div class="bracket">
+                        <span>$500 - $999</span>
+                        <span><strong>$5</strong></span>
+                    </div>
+                    <div class="bracket">
+                        <span>$1,000 - $1,499</span>
+                        <span><strong>$10</strong></span>
+                    </div>
+                    <div class="bracket">
+                        <span>$1,500 - $1,999</span>
+                        <span><strong>$15</strong></span>
+                    </div>
+                    <div class="bracket">
+                        <span>$2,000 - $2,499</span>
+                        <span><strong>$20</strong></span>
+                    </div>
+                    <div class="bracket">
+                        <span>$2,500 - $2,999</span>
+                        <span><strong>$25</strong></span>
+                    </div>
+                    <div class="bracket">
+                        <span>$3,000 - $3,499</span>
+                        <span><strong>$30</strong></span>
+                    </div>
+                    <div class="bracket">
+                        <span>$3,500 - $3,999</span>
+                        <span><strong>$35</strong></span>
+                    </div>
+                    <div class="bracket">
+                        <span>$4,000+</span>
+                        <span><strong>$40</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="upload-section" id="uploadSection">
+                <h3 style="color: #1e40af; margin-bottom: 20px;">⚡ Upload Collector Commission Spreadsheet</h3>
+                <p style="color: #64748b; margin-bottom: 20px;">Select your team above, then upload the Excel file</p>
+                <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls,.csv">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+                <p style="margin-top: 10px; color: #64748b; font-size: 0.9rem;">Supported formats: .xlsx, .xls, .csv</p>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your file...</p>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="results-header">
+                    <h2>⚡ Bonus Calculation Results</h2>
+                    <p id="teamResults"></p>
+                </div>
+
+                <div class="summary-stats" id="summaryStats">
+                    <!-- Stats will be populated by JavaScript -->
+                </div>
+
+                <div class="results-table">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Agent</th>
+                                <th>Account #</th>
+                                <th>Payment Amount</th>
+                                <th>Bonus Earned</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                            <!-- Results will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="download-section">
+                    <button class="download-btn" id="downloadBtn">
+                        ⚡ Download Bonus Report for Payroll
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        let selectedTeam = null;
+        let calculatedBonuses = [];
+
+        // Bonus structures
+        const bonusStructures = {
+            mexico: [
+                { min: 500, max: 999, bonus: 25 },
+                { min: 1000, max: 1999, bonus: 50 },
+                { min: 2000, max: 3999, bonus: 100 },
+                { min: 4000, max: Infinity, bonus: 200 }
+            ],
+            opac: [
+                { min: 500, max: 999, bonus: 5 },
+                { min: 1000, max: 1499, bonus: 10 },
+                { min: 1500, max: 1999, bonus: 15 },
+                { min: 2000, max: 2499, bonus: 20 },
+                { min: 2500, max: 2999, bonus: 25 },
+                { min: 3000, max: 3499, bonus: 30 },
+                { min: 3500, max: 3999, bonus: 35 },
+                { min: 4000, max: Infinity, bonus: 40 }
+            ]
+        };
+
+        // Team selection
+        document.querySelectorAll('.team-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedTeam = this.dataset.team;
+            });
+        });
+
+        // File upload
+        document.getElementById('fileInput').addEventListener('change', handleFile);
+
+        // Drag and drop
+        const uploadSection = document.getElementById('uploadSection');
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        });
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            if (!selectedTeam) {
+                alert('Please select a team first!');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    calculateBonuses(jsonData);
+                } catch (error) {
+                    alert('Error reading file. Please make sure it\'s a valid Excel file.');
+                    console.error(error);
+                    document.getElementById('loading').style.display = 'none';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function calculateBonuses(data) {
+            calculatedBonuses = [];
+            const structure = bonusStructures[selectedTeam];
+
+            data.forEach(row => {
+                // Extract payment amount (looking for "Pmt Amt" or similar columns)
+                const pmtAmt = parseFloat(row['Pmt Amt'] || row['Payment Amount'] || row['Amount'] || 0);
+                const accountNum = row['Account #'] || row['Account'] || row['Account Number'] || '';
+                const agent = extractAgent(row);
+                const date = row['Pmt Date'] || row['Date'] || row['Payment Date'] || '';
+
+                if (pmtAmt >= 500 && accountNum && agent) {
+                    const bonus = calculateBonus(pmtAmt, structure);
+                    if (bonus > 0) {
+                        calculatedBonuses.push({
+                            agent: agent,
+                            accountNum: accountNum,
+                            paymentAmount: pmtAmt,
+                            bonusAmount: bonus,
+                            date: date
+                        });
+                    }
+                }
+            });
+
+            displayResults();
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function extractAgent(row) {
+            // Try to find agent info from various possible column names
+            return row['Agent'] || row['Collector'] || row['Coll. 2'] || row['Coll. 3'] || 
+                   row['Initials'] || row['Name'] || '';
+        }
+
+        function calculateBonus(amount, structure) {
+            for (let bracket of structure) {
+                if (amount >= bracket.min && amount <= bracket.max) {
+                    return bracket.bonus;
+                }
+            }
+            return 0;
+        }
+
+        function displayResults() {
+            const resultsSection = document.getElementById('resultsSection');
+            const teamResults = document.getElementById('teamResults');
+            const summaryStats = document.getElementById('summaryStats');
+            const resultsBody = document.getElementById('resultsBody');
+
+            resultsSection.style.display = 'block';
+            teamResults.textContent = `Results for ${selectedTeam.toUpperCase()} Team`;
+
+            // Calculate summary statistics
+            const totalBonuses = calculatedBonuses.reduce((sum, item) => sum + item.bonusAmount, 0);
+            const totalPayments = calculatedBonuses.reduce((sum, item) => sum + item.paymentAmount, 0);
+            const uniqueAgents = new Set(calculatedBonuses.map(item => item.agent)).size;
+
+            summaryStats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">$${totalBonuses.toLocaleString()}</div>
+                    <div class="stat-label">Total Bonuses</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${calculatedBonuses.length}</div>
+                    <div class="stat-label">Qualifying Payments</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${uniqueAgents}</div>
+                    <div class="stat-label">Agents Earning Bonuses</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">$${totalPayments.toLocaleString()}</div>
+                    <div class="stat-label">Total Payments</div>
+                </div>
+            `;
+
+            // Populate results table
+            resultsBody.innerHTML = '';
+            calculatedBonuses.forEach(bonus => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${bonus.agent}</td>
+                    <td>${bonus.accountNum}</td>
+                    <td>$${bonus.paymentAmount.toLocaleString()}</td>
+                    <td class="bonus-amount">$${bonus.bonusAmount}</td>
+                    <td>${bonus.date}</td>
+                `;
+                resultsBody.appendChild(row);
+            });
+        }
+
+        // Download functionality
+        document.getElementById('downloadBtn').addEventListener('click', downloadReport);
+
+        function downloadReport() {
+            const teamName = selectedTeam.charAt(0).toUpperCase() + selectedTeam.slice(1);
+            const date = new Date().toLocaleDateString();
+            
+            let html = `
+                <html>
+                <head>
+                    <title>THE POWERHOUZE GROUP - Bonus Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1e40af; padding-bottom: 20px; }
+                        .header h1 { color: #1e40af; margin-bottom: 5px; }
+                        .header h2 { color: #3b82f6; margin-bottom: 10px; }
+                        .summary { background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+                        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+                        th { background: #1e40af; color: white; }
+                        tr:nth-child(even) { background: #f8fafc; }
+                        .signature-section { margin-top: 50px; border-top: 2px solid #e2e8f0; padding-top: 30px; }
+                        .signature-box { display: inline-block; margin-right: 50px; margin-bottom: 30px; }
+                        .signature-line { border-bottom: 1px solid #000; width: 200px; margin-bottom: 5px; height: 20px; }
+                        .bonus-amount { font-weight: bold; color: #059669; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>⚡ THE POWERHOUZE GROUP</h1>
+                        <h2>Bonus Payment Report - ${teamName} Team</h2>
+                        <p>Report Date: ${date}</p>
+                    </div>
+                    
+                    <div class="summary">
+                        <h3>Summary</h3>
+                        <p><strong>Total Bonuses Payable:</strong> $${calculatedBonuses.reduce((sum, item) => sum + item.bonusAmount, 0).toLocaleString()}</p>
+                        <p><strong>Number of Qualifying Payments:</strong> ${calculatedBonuses.length}</p>
+                        <p><strong>Agents Receiving Bonuses:</strong> ${new Set(calculatedBonuses.map(item => item.agent)).size}</p>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Agent</th>
+                                <th>Account #</th>
+                                <th>Payment Amount</th>
+                                <th>Bonus Earned</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            calculatedBonuses.forEach(bonus => {
+                html += `
+                    <tr>
+                        <td>${bonus.agent}</td>
+                        <td>${bonus.accountNum}</td>
+                        <td>$${bonus.paymentAmount.toLocaleString()}</td>
+                        <td class="bonus-amount">$${bonus.bonusAmount}</td>
+                        <td>${bonus.date}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+
+                    <div class="signature-section">
+                        <h3>Agent Acknowledgment</h3>
+                        <p>I acknowledge receipt of the bonus payment(s) listed above:</p>
+                        <br><br>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <p>Agent Signature</p>
+                        </div>
+                        
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <p>Date</p>
+                        </div>
+                        
+                        <br><br>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <p>Manager Signature</p>
+                        </div>
+                        
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <p>Date</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Powerhouze_Bonus_Report_${teamName}_${date.replace(/\//g, '-')}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
